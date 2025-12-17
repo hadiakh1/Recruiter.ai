@@ -1,16 +1,26 @@
 """
 Machine Learning Models Module
-Implements multiple classifiers: Logistic Regression, Random Forest, Decision Tree, MLP, BERT-based
+Implements multiple classifiers: Logistic Regression, Random Forest (classification & regression),
+Decision Tree, MLP, and optional BERT-based models.
 """
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    classification_report,
+    mean_squared_error,
+    mean_absolute_error,
+    r2_score,
+)
 
 # Optional imports for imbalanced learning
 try:
@@ -131,7 +141,7 @@ class MLModelTrainer:
     def train_random_forest(self, X_train: np.ndarray, y_train: np.ndarray,
                            X_test: np.ndarray, y_test: np.ndarray,
                            n_estimators: int = 100) -> Dict:
-        """Train Random Forest model"""
+        """Train Random Forest classifier"""
         model = RandomForestClassifier(
             n_estimators=n_estimators,
             random_state=42,
@@ -144,10 +154,47 @@ class MLModelTrainer:
         scores = self._calculate_metrics(y_test, y_pred)
         
         self.models['random_forest'] = model
-        scores['model_name'] = 'Random Forest'
+        scores['model_name'] = 'Random Forest (classifier)'
         scores['feature_importance'] = model.feature_importances_.tolist()
         
         return scores
+
+    def train_random_forest_regressor(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_test: np.ndarray,
+        y_test: np.ndarray,
+        n_estimators: int = 200,
+        max_depth: Optional[int] = None,
+        random_state: int = 42,
+    ) -> Dict:
+        """
+        Train Random Forest regressor for continuous targets (e.g., matched_score in [0, 1]).
+        """
+        model = RandomForestRegressor(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            random_state=random_state,
+            n_jobs=-1,
+        )
+        model.fit(X_train, y_train)
+
+        y_pred = model.predict(X_test)
+
+        # Regression metrics
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        self.models["rf_regressor"] = model
+
+        return {
+            "model_name": "Random Forest Regressor",
+            "mse": float(mse),
+            "mae": float(mae),
+            "r2": float(r2),
+        }
     
     def train_decision_tree(self, X_train: np.ndarray, y_train: np.ndarray,
                            X_test: np.ndarray, y_test: np.ndarray) -> Dict:
@@ -235,7 +282,7 @@ class MLModelTrainer:
         return scores
     
     def _calculate_metrics(self, y_true: np.ndarray, y_pred: np.ndarray) -> Dict:
-        """Calculate evaluation metrics"""
+        """Calculate evaluation metrics for classification models"""
         return {
             'accuracy': accuracy_score(y_true, y_pred),
             'precision': precision_score(y_true, y_pred, average='weighted', zero_division=0),
@@ -264,18 +311,26 @@ class MLModelTrainer:
         }
     
     def predict(self, model_name: str, X: np.ndarray) -> np.ndarray:
-        """Make predictions using a trained model"""
+        """
+        Make predictions using a trained model.
+
+        - For classifiers: returns probability of positive class (predict_proba).
+        - For regressors: returns continuous predictions (predict).
+        """
         if model_name not in self.models:
             raise ValueError(f"Model {model_name} not trained yet")
         
         model = self.models[model_name]
         scaler = self.scalers.get(model_name)
-        
-        if scaler:
-            X_scaled = scaler.transform(X)
-            return model.predict_proba(X_scaled)[:, 1]  # Return probability of positive class
-        else:
+
+        if scaler is not None:
+            X = scaler.transform(X)
+
+        # Classifiers expose predict_proba; regressors usually do not.
+        if hasattr(model, "predict_proba"):
             return model.predict_proba(X)[:, 1]
+        else:
+            return model.predict(X)
     
     def save_model(self, model_name: str, filepath: str):
         """Save trained model"""

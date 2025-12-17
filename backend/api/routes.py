@@ -152,7 +152,24 @@ except Exception as e:
 
 # Initialize ML predictor and explainability (with error handling)
 try:
-    ml_predictor = MLPredictor()
+    ml_predictor = MLPredictor(model_name="rf_regressor")
+
+    # Attempt to load trained Random Forest Regressor if available
+    backend_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    models_dir = os.path.join(backend_root, "models")
+    rf_model_path = os.path.join(models_dir, "random_forest_regressor.pkl")
+    rf_scaler_path = os.path.join(models_dir, "random_forest_regressor_scaler.pkl")
+
+    if os.path.exists(rf_model_path):
+        try:
+            scaler_path_arg = rf_scaler_path if os.path.exists(rf_scaler_path) else None
+            ml_predictor.load_model(rf_model_path, scaler_path=scaler_path_arg)
+            print(f"Loaded Random Forest Regressor model from {rf_model_path}")
+        except Exception as e:
+            print(f"Warning: Failed to load RF regressor model: {e}. Falling back to heuristic scoring.")
+    else:
+        print("Warning: RF regressor model file not found. Using heuristic ML scoring.")
+
     explainability_module = ExplainabilityModule()
 except Exception as e:
     print(f"Warning: Error initializing ML modules: {e}")

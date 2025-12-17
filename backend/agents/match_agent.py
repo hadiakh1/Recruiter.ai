@@ -17,15 +17,17 @@ class MatchAgent(BaseAgent):
     
     def __init__(self, shared_memory: SharedMemory = None, ml_model_path: str = None):
         super().__init__("match_agent", shared_memory)
+        # Use the same default model name as in MLPredictor (rf_regressor)
         self.ml_predictor = MLPredictor()
         self.csp_solver = CSPSolver()
         
-        # Load ML model if path provided
+        # Load ML model if path provided (optional override)
         if ml_model_path:
             try:
                 self.ml_predictor.load_model(ml_model_path)
-            except:
-                pass  # Model not available, will use default
+            except Exception as e:
+                # Model not available, will use default heuristic scoring
+                print(f"Warning: could not load ML model in MatchAgent: {e}")
     
     def compute_job_fit_score(self, ml_score: float, csp_score: float,
                              ml_weight: float = 0.6, csp_weight: float = 0.4) -> float:

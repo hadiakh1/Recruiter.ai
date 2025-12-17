@@ -1,7 +1,12 @@
 """
 ML Prediction API Module
-Provides prediction services for job fit scores
+Provides prediction services for job fit scores.
+
+This module can use either:
+- A trained ML model (e.g. Random Forest Regressor), if loaded, or
+- A heuristic fallback based on features and job requirements.
 """
+import os
 import numpy as np
 from typing import Dict, List, Optional
 from .models import MLModelTrainer
@@ -9,7 +14,8 @@ from .models import MLModelTrainer
 class MLPredictor:
     """ML Prediction service"""
     
-    def __init__(self, model_name: str = 'random_forest'):
+    def __init__(self, model_name: str = 'rf_regressor'):
+        # Default to the Random Forest Regressor we train from resume_data.csv
         self.trainer = MLModelTrainer()
         self.model_name = model_name
         self.is_loaded = False
