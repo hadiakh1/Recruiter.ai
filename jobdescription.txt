@@ -1,0 +1,64 @@
+Job Title: Full Stack Developer
+Job Description
+
+We are looking for a skilled Full Stack Developer to design, develop, and maintain web applications. The ideal candidate should be comfortable working with both frontend and backend technologies and have experience building scalable, user-friendly systems.
+
+Required Skills
+
+JavaScript
+
+React
+
+HTML
+
+CSS
+
+Node.js
+
+Express.js
+
+REST APIs
+
+SQL
+
+Git
+
+Optional / Preferred Skills
+
+TypeScript
+
+Docker
+
+AWS
+
+MongoDB
+
+CI/CD pipelines
+
+Experience Requirements
+
+Minimum 2 years of professional software development experience
+
+Experience building full-stack web applications
+
+Education
+
+Bachelor’s degree in Computer Science, Software Engineering, or a related field
+
+Responsibilities
+
+Develop frontend components using React
+
+Build backend APIs using Node.js and Express
+
+Design and manage databases
+
+Collaborate with designers and product managers
+
+Write clean, maintainable code
+
+Nice to Have
+
+Experience with cloud deployment
+
+Familiarity with Agile/Scrum methodology
